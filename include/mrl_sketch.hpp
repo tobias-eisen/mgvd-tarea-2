@@ -37,11 +37,18 @@ namespace mrl {
             A = vector<vector<int> >(L+1, vector<int>(k, numeric_limits<int>::min()));
         }
 
-        // Insert (recursive implementation, should also work for odd k values)
-        void insert(int new_elem, bool print_output = false) {insert(new_elem, 0, print_output);}
-
+        // Insert (recursive implementation)
+        void insert(int new_elem, bool print_output = false){insert(new_elem, 0, print_output);}
         void insert(int new_elem, int j, bool print_output = false)
         {
+            // Check if MRL sketch overflows with given epsilon
+            if (j > L) {
+                cerr << "Error: Epsilon value (" << epsilon << ") is too high for input stream size n=" << n << "." << endl;
+                cerr << "This causes overflow beyond maximum level L=" << L << "." << endl;
+                cerr << "Please use a smaller epsilon value." << endl;
+                exit(1);
+            }
+            
             vector<int>& A_j = A[j];
             for (int i=0; i<k; i++) {
                 if (A_j[i] == numeric_limits<int>::min()){
@@ -62,36 +69,6 @@ namespace mrl {
             if (print_output){
                 cout << "Inserting: " << new_elem << endl;
                 print();
-            }
-        }
-
-        // Insert (implementation exactly like pseudo code, depends on condition that k is an even number)
-        void insert_efficient(int new_elem)
-        { 
-            // assert that k is even number
-            if (k % 2 != 0) {
-                throw std::invalid_argument("k must be an even number for efficient insertion");
-            }
-            // insert element in A_0
-            vector<int>& A_0 = A[0];
-            for (int i = 0; i < k; i++) {
-                if (A_0[i] != numeric_limits<int>::min()){
-                    A_0[i] = new_elem;
-                    break;
-                }
-            }
-            
-            int j = 0;
-            while (j < L+1 && A[j].back() != numeric_limits<int>::min()){ // Check if A_j is full (when last element is not INT_MIN)
-                vector<int>& A_j = A[j];
-                sort(A_j.begin(), A_j.end()); // Sort A_j
-                int first_free_idx = get_first_free_idx(A[j+1]); // get the first free index (to avoid relooping every time)
-                for (int a = 0; a < k; a+=2) { // loop over odd indexes of A_j (here even, because start at 0)
-                    for (int b = 0; a+b < k; b++)
-                        A[j+1][first_free_idx+b] = A_j[a]; // insert values from A_j in A_j+1 starting at first free position
-                }
-                fill(A_j.begin(), A_j.end(), numeric_limits<int>::min()); // clear A_j (reset values to INT_MIN)
-                j++;
             }
         }
 
@@ -121,7 +98,7 @@ namespace mrl {
                 }
             }
             // Sort B by first component
-            std::sort(B.begin(), B.end(), [](const auto& left, const auto& right) {
+            sort(B.begin(), B.end(), [](const auto& left, const auto& right) {
                 return left.first < right.first;
             });
 
@@ -139,17 +116,21 @@ namespace mrl {
         int quantile(double phi){return select(floor(phi * n));}
 
         // Print MRL sketch scheme
-        void print(){
+        void print(bool compressed_output = false){
             cout << "--- MRL sketch scheme (k = " << k << ", L = " << L << ") ---" << endl;
             for (int j = L; j >= 0; j--) {
+                if (compressed_output){
+                    if (j == L-3) for (int a=0;a<3;a++) cout << " ." << endl;
+                    if (j <= L-3 && j >= 3) continue;
+                }
                 cout << "A_" << j << ": [";
                 for (int i = 0; i < k; i++) {
-                if (A[j][i] != numeric_limits<int>::min())
-                    cout << A[j][i];
-                else
-                    cout << "-";
-                if (i < k - 1)
-                    cout << ", ";
+                    if (A[j][i] != numeric_limits<int>::min())
+                        cout << A[j][i];
+                    else
+                        cout << "-";
+                    if (i < k - 1)
+                        cout << ", ";
                 }
                 cout << "]" << endl;
             }

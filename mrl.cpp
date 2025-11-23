@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
         }
     }
     cout << "Final sketch:" << endl;
-    sketch.print();
+    sketch.print(true);
     input_stream.close();
 
     // Interactive command line interface for MRL sketch evaluation
@@ -81,11 +81,11 @@ int main(int argc, char *argv[])
                 if (close != string::npos) {
                     try {
                         int r = stoi(command.substr(7, close - 7));
-                        if (r >= 1) {
+                        if (r >= 1 && r <= args.n) {
                             int result = sketch.select(r);
                             cout << "select(" << r << ") = " << result << endl;
                         } else {
-                            cerr << "Error: r must be >= 1" << endl;
+                            cerr << "Error: r must be in [1, " << args.n << "]" << endl;
                         }
                     } catch (...) {
                         cerr << "Error: Invalid integer for select" << endl;
