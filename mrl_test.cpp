@@ -1,7 +1,8 @@
-#include "mrl_sketch.h"
 #include <iostream>
+#include "include/mrl_sketch.hpp"
 
-int main() {
+int main()
+{
     // Parameters
     const double epsilon = 0.8;
     const size_t n = 14;
@@ -17,7 +18,7 @@ int main() {
     
     // Insert elements from stream
     for (int value : stream) {
-        sketch.insertar(value, false); // set to true for printing sketch after each insertion
+        sketch.insert(value, false); // set to true for printing sketch after each insertion
     }
     
     // Print the resulting sketch
